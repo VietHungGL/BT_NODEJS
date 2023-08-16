@@ -1,15 +1,11 @@
-var express = require("express");
-var router = express.Router();
 const yup = require("yup");
 
 const data = require("../../data/products.json");
-const { writeFileSync, generationID, validateSchema } = require("../../helper");
+const { writeFileSync, generationID } = require("../../helper");
 
-/* GET home page. */
 const getAll = (req, res, next) => {
   res.send(data);
 };
-router.get("/", getAll);
 
 const postCreate = async (req, res, next) => {
   const { name, price } = req.body;
@@ -26,34 +22,12 @@ const postCreate = async (req, res, next) => {
     message: "Tạo thành công",
   });
 };
-router.post("/", postCreate);
 
 const getSearch = (req, res, next) => {
   const { price } = req.query;
   const filter = data.filter((item) => item.price >= price);
   res.send(filter);
 };
-router.get("/search", getSearch);
-
-// Get one by id
-// router.get("/:id", function (req, res, next) {
-//   const { id } = req.params;
-//   const validationSchema = yup.object().shape({
-//     id: yup.number(),
-//   });
-//   validationSchema
-//     .validate({ id })
-//     .then(() => {
-//       let result = data.find((x) => x.id == id);
-
-//       if (result) {
-//         return res.send({ code: 200, payload: result });
-//       }
-
-//       return res.send(404, { message: "Not found" });
-//     })
-//     .catch((err) => res.send(400, { message: "id Loi roi" }));
-// });
 
 const getUpdate = (req, res, next) => {
   const { id } = req.params;
@@ -72,18 +46,6 @@ const getUpdate = (req, res, next) => {
     })
     .catch((err) => res.send(400, { message: "Bad request" }));
 };
-
-router.get("/:id", getUpdate);
-
-const updateProductSchema = yup.object({
-  params: yup.object({
-    id: yup.number(),
-  }),
-  body: yup.object({
-    price: yup.number(),
-    name: yup.string(),
-  }),
-});
 
 const patchUpdate = (req, res, next) => {
   try {
@@ -105,8 +67,6 @@ const patchUpdate = (req, res, next) => {
   }
 };
 
-router.patch("/:id", validateSchema(updateProductSchema), patchUpdate);
-
 const xoa = (req, res, next) => {
   const { id } = req.params;
   data = data.filter((x) => x.id.toString() !== id.toString());
@@ -115,6 +75,12 @@ const xoa = (req, res, next) => {
 
   res.send({ ok: true, message: "Deleted" });
 };
-router.delete("/:id", xoa);
 
-module.exports = router;
+module.exports = {
+  getAll,
+  postCreate,
+  getSearch,
+  getUpdate,
+  patchUpdate,
+  xoa,
+};
