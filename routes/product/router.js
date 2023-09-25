@@ -1,59 +1,51 @@
 var express = require("express");
 var router = express.Router();
-const yup = require("yup");
+const passport = require("passport");
 
+const { productsPutSchema, validationQuerySchema } = require("./validation");
+
+const { validateSchema, checkIdSchema } = require("../../helper");
 const {
   getAll,
+  getList,
   postCreate,
   getSearch,
-  getUpdate,
-  patchUpdate,
-  xoa,
+  getDetail,
+  update,
+  deteFun,
 } = require("./controller");
-const { validateSchema } = require("../../helper");
 
 /* GET home page. */
+router.route("/all").get(getAll);
 
-router.get("/", getAll);
+router
+  .route("/")
+  .get(getList)
+  .post(
+    passport.authenticate("jwt", { session: false }),
+    validateSchema(productsPutSchema),
+    postCreate
+  );
 
-router.post("/", postCreate);
+router.get("/search", validateSchema(validationQuerySchema), getSearch);
 
-router.get("/search", getSearch);
-
-// Get one by id
-// router.get("/:id", function (req, res, next) {
-//   const { id } = req.params;
-//   const validationSchema = yup.object().shape({
-//     id: yup.number(),
-//   });
-//   validationSchema
-//     .validate({ id })
-//     .then(() => {
-//       let result = data.find((x) => x.id == id);
-
-//       if (result) {
-//         return res.send({ code: 200, payload: result });
-//       }
-
-//       return res.send(404, { message: "Not found" });
-//     })
-//     .catch((err) => res.send(400, { message: "id Loi roi" }));
-// });
-
-router.get("/:id", getUpdate);
-
-const updateProductSchema = yup.object({
-  params: yup.object({
-    id: yup.number(),
-  }),
-  body: yup.object({
-    price: yup.number(),
-    name: yup.string(),
-  }),
-});
-
-router.patch("/:id", validateSchema(updateProductSchema), patchUpdate);
-
-router.delete("/:id", xoa);
-
+router
+  .route("/:id")
+  .get(validateSchema(checkIdSchema), getDetail)
+  .put(
+    passport.authenticate("jwt", { session: false }),
+    validateSchema(checkIdSchema),
+    validateSchema(productsPutSchema),
+    update
+  )
+  // .patch(
+  //   validateSchema(checkIdSchema),
+  //   validateSchema(productsPatchSchema),
+  //   update
+  // )
+  .delete(
+    passport.authenticate("jwt", { session: false }),
+    validateSchema(checkIdSchema),
+    deteFun
+  );
 module.exports = router;
